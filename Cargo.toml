@@ -22,16 +22,22 @@ lto = true
 wasm-bindgen = "0.2.45"
 
 console_error_panic_hook = "0.1.7"
+anyhow = "1.0.75"
+futures = "0.3.28"
+wasm-bindgen-futures = "0.4.37"
 
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
 [dependencies.web-sys]
 version = "0.3.22"
-features = ["console"]
+features = [
+    "console",
+    "HtmlImageElement",
+    "Window",
+    "Document",
+]
 
 # These crates are used for running unit tests.
 [dev-dependencies]
 wasm-bindgen-test = "0.2.45"
-futures = "0.1.27"
 js-sys = "0.3.22"
-wasm-bindgen-futures = "0.3.22"
