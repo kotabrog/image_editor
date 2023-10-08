@@ -1,0 +1,43 @@
+on: [push]
+
+name: build
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.72.1
+          target: wasm32-unknown-unknown
+          override: true
+          components: clippy
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          version: 0.11.0
+          use-tool-cache: true
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.13.0'
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
