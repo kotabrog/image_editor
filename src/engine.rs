@@ -42,3 +42,41 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
 
     Ok(image)
 }
+
+pub fn draw_image(image: HtmlImageElement, dw: f64, dh: f64) -> Result<()> {
+    let ctx = browser::context()?;
+    ctx.draw_image_with_html_image_element_and_dw_and_dh(&image, 0.0, 0.0, dw, dh)
+        .map_err(|err| anyhow!("Could not draw image {:#?}", err))
+        .map(|_| ())
+}
+
+pub fn calculate_fitted_size(
+    image: &HtmlImageElement,
+    max_width: f64,
+    max_height: f64,
+) -> (f64, f64) {
+    let width = image.width() as f64;
+    let height = image.height() as f64;
+    let ratio = width / height;
+    let (dw, dh) = if width > height {
+        (max_width, max_width / ratio)
+    } else {
+        (max_height * ratio, max_height)
+    };
+    (dw, dh)
+}
+
+pub fn get_canvas_size() -> Result<(f64, f64)> {
+    let canvas = browser::canvas()?;
+    let width = canvas.width() as f64;
+    let height = canvas.height() as f64;
+    Ok((width, height))
+}
+
+pub fn draw_image_fit_canvas(image: HtmlImageElement) -> Result<()> {
+    let (dw, dh) = {
+        let (width, height) = get_canvas_size()?;
+        calculate_fitted_size(&image, width, height)
+    };
+    draw_image(image, dw, dh)
+}

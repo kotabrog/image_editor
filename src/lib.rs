@@ -10,8 +10,8 @@ fn image_editor() -> Result<()> {
         let image = engine::load_image("image_sample.PNG")
             .await
             .expect("Could not load image");
-        browser::append_child(&image)
-            .expect("Could not append child");
+        engine::draw_image_fit_canvas(image)
+            .expect("Could not draw image");
     });
     Ok(())
 }
