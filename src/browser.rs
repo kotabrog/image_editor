@@ -1,12 +1,11 @@
 use anyhow::{anyhow, Result};
 use wasm_bindgen::{
     JsCast,
-    closure::{Closure, WasmClosureFnOnce}
+    closure::{Closure, WasmClosure, WasmClosureFnOnce}
 };
-// use wasm_bindgen_futures::JsFuture;
 use web_sys::{
     Window, Document, HtmlImageElement, HtmlCanvasElement,
-    CanvasRenderingContext2d,
+    CanvasRenderingContext2d, HtmlInputElement, Event,
 };
 
 #[allow(unused_macros)]
@@ -21,7 +20,7 @@ macro_rules! log {
 #[macro_export]
 macro_rules! error {
     ( $( $t:tt )* ) => {
-        web_sys::console::error_1(&format!( $( $t )* ).into());
+        web_sys::console::error_1(&format!( $( $t )* ).into())
     };
 }
 
@@ -52,6 +51,21 @@ pub fn context() -> Result<CanvasRenderingContext2d> {
         )
 }
 
+pub fn file_input() -> Result<HtmlInputElement> {
+    document()?
+        .get_element_by_id("file_input")
+        .ok_or_else(|| anyhow!("No Input Element found with ID 'file_input'"))?
+        .dyn_into::<HtmlInputElement>()
+        .map_err(|element| anyhow!("Error converting {:#?} to HtmlInputElement", element))
+}
+
+pub fn event_current_target(event: &Event) -> Result<HtmlInputElement> {
+    event.current_target()
+        .ok_or_else(|| anyhow!("No current target found"))?
+        .dyn_into::<HtmlInputElement>()
+        .map_err(|element| anyhow!("Error converting {:#?} to HtmlInputElement", element))
+}
+
 pub fn new_image() -> Result<HtmlImageElement> {
     HtmlImageElement::new()
         .map_err(|err| anyhow!("Could not create HtmlImageElement {:#?}", err))
@@ -69,4 +83,8 @@ where
     F: 'static + WasmClosureFnOnce<A, R>,
 {
     Closure::once(fn_once)
+}
+
+pub fn closure_wrap<T: WasmClosure + ?Sized>(data: Box<T>) -> Closure<T> {
+    Closure::wrap(data)
 }
