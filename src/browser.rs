@@ -40,8 +40,8 @@ pub fn canvas() -> Result<HtmlCanvasElement> {
         .map_err(|element| anyhow!("Error converting {:#?} to HtmlCanvasElement", element))
 }
 
-pub fn context() -> Result<CanvasRenderingContext2d> {
-    canvas()?
+pub fn context_from_canvas(canvas: &HtmlCanvasElement) -> Result<CanvasRenderingContext2d> {
+    canvas
         .get_context("2d")
         .map_err(|js_value| anyhow!("Error getting 2d context {:#?}", js_value))?
         .ok_or_else(|| anyhow!("No 2d context found"))?
@@ -49,6 +49,12 @@ pub fn context() -> Result<CanvasRenderingContext2d> {
         .map_err(|element|
             anyhow!("Error converting {:#?} to CanvasRenderingContext2d", element)
         )
+}
+
+pub fn get_canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
+    let width = canvas.width();
+    let height = canvas.height();
+    (width, height)
 }
 
 pub fn file_input() -> Result<HtmlInputElement> {
