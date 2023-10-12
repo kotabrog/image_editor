@@ -9,9 +9,11 @@ use crate::browser;
 
 mod renderer;
 mod image;
+mod input;
 
 pub use renderer::Renderer;
 pub use image::Image;
+pub use input::Input;
 
 async fn internal_draw_image_fit_canvas_from_source(source: String) -> Result<()> {
     let renderer = Renderer::new()?;
@@ -32,29 +34,30 @@ pub fn draw_image_fit_canvas_from_source(source: String) -> Result<()> {
     Ok(())
 }
 
+fn setup_input_event_closure_reader_closure(reader: &FileReader) -> Result<()> {
+    let result = browser::file_reader_result(&reader)?;
+    draw_image_fit_canvas_from_source(result)?;
+    Ok(())
+}
+
 fn setup_input_event_closure(event: Event) -> Result<()> {
-    let input = browser::event_current_target(&event)?;
-    if let Some(files) = input.files() {
-        if files.length() > 0 {
-            let file = files.get(0)
-                .ok_or_else(|| anyhow!("No file found"))?;
-            let reader = FileReader::new()
-                .map_err(|err| anyhow!("Could not create FileReader {:#?}", err))?;
+    let input = Input::new_from_event(event)?;
+    if let Some(file) = input.get_first_image_file()? {
+        let reader = browser::file_reader()?;
 
-            let reader_ref = Rc::new(RefCell::new(reader));
-            let reader_clone = reader_ref.clone();
-        
-            let onload_closure = browser::closure_wrap(Box::new(move |_event: Event| {
-                let result = reader_clone.borrow().result().unwrap().as_string().unwrap();
-                draw_image_fit_canvas_from_source(result).unwrap();
-            }) as Box<dyn FnMut(_)>);
+        let reader_ref = Rc::new(RefCell::new(reader));
+        let reader_clone = reader_ref.clone();
 
-            reader_ref.borrow_mut().set_onload(Some(onload_closure.as_ref().unchecked_ref()));
-            onload_closure.forget();
+        let onload_closure = browser::closure_wrap(Box::new(move |_event: Event| {
+            if let Err(err) = setup_input_event_closure_reader_closure(&reader_clone.borrow()) {
+                error!("{:#?}", err);
+            }
+        }) as Box<dyn FnMut(_)>);
 
-            reader_ref.borrow().read_as_data_url(&file)
-                .map_err(|err| anyhow!("Could not read file {:#?}", err))?;
-        }
+        reader_ref.borrow_mut().set_onload(Some(onload_closure.as_ref().unchecked_ref()));
+        onload_closure.forget();
+
+        browser::file_reader_read_as_data_url(&reader_ref.borrow(), &file)?;
     }
     Ok(())
 }

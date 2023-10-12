@@ -5,7 +5,17 @@ use wasm_bindgen::{
 };
 use web_sys::{
     Window, Document, HtmlImageElement, HtmlCanvasElement,
-    CanvasRenderingContext2d, HtmlInputElement, Event,
+    CanvasRenderingContext2d,
+};
+
+mod input;
+mod file_reader;
+
+pub use input::{
+    file_input, event_current_target,
+};
+pub use file_reader::{
+    file_reader, file_reader_result, file_reader_read_as_data_url,
 };
 
 #[allow(unused_macros)]
@@ -55,21 +65,6 @@ pub fn get_canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
     let width = canvas.width();
     let height = canvas.height();
     (width, height)
-}
-
-pub fn file_input() -> Result<HtmlInputElement> {
-    document()?
-        .get_element_by_id("file_input")
-        .ok_or_else(|| anyhow!("No Input Element found with ID 'file_input'"))?
-        .dyn_into::<HtmlInputElement>()
-        .map_err(|element| anyhow!("Error converting {:#?} to HtmlInputElement", element))
-}
-
-pub fn event_current_target(event: &Event) -> Result<HtmlInputElement> {
-    event.current_target()
-        .ok_or_else(|| anyhow!("No current target found"))?
-        .dyn_into::<HtmlInputElement>()
-        .map_err(|element| anyhow!("Error converting {:#?} to HtmlInputElement", element))
 }
 
 pub fn new_image() -> Result<HtmlImageElement> {
