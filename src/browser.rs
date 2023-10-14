@@ -5,7 +5,7 @@ use wasm_bindgen::{
 };
 use web_sys::{
     Window, Document, HtmlImageElement, HtmlCanvasElement,
-    CanvasRenderingContext2d,
+    CanvasRenderingContext2d, Event,
 };
 
 mod input;
@@ -17,6 +17,8 @@ pub use input::{
 pub use file_reader::{
     file_reader, file_reader_result, file_reader_read_as_data_url,
 };
+
+pub type EventClosure = Closure<dyn FnMut(Event)>;
 
 #[allow(unused_macros)]
 #[macro_export]
@@ -88,4 +90,8 @@ where
 
 pub fn closure_wrap<T: WasmClosure + ?Sized>(data: Box<T>) -> Closure<T> {
     Closure::wrap(data)
+}
+
+pub fn create_event_closure(f: impl FnMut(Event) + 'static) -> EventClosure {
+    closure_wrap(Box::new(f))
 }

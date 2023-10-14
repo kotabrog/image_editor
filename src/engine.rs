@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use wasm_bindgen::JsCast;
 use web_sys::{
     Event, FileReader,
@@ -48,11 +48,11 @@ fn setup_input_event_closure(event: Event) -> Result<()> {
         let reader_ref = Rc::new(RefCell::new(reader));
         let reader_clone = reader_ref.clone();
 
-        let onload_closure = browser::closure_wrap(Box::new(move |_event: Event| {
+        let onload_closure = browser::create_event_closure(move |_event: Event| {
             if let Err(err) = setup_input_event_closure_reader_closure(&reader_clone.borrow()) {
                 error!("{:#?}", err);
             }
-        }) as Box<dyn FnMut(_)>);
+        });
 
         reader_ref.borrow_mut().set_onload(Some(onload_closure.as_ref().unchecked_ref()));
         onload_closure.forget();
@@ -65,11 +65,11 @@ fn setup_input_event_closure(event: Event) -> Result<()> {
 pub fn setup_input_event() -> Result<()> {
     let input_element = browser::file_input()?;
 
-    let closure = browser::closure_wrap(Box::new(move |event: Event| {
+    let closure = browser::create_event_closure(move |event: Event| {
         if let Err(err) = setup_input_event_closure(event) {
             error!("{:#?}", err);
         }
-    }) as Box<dyn FnMut(_)>);
+    });
 
     input_element.set_onchange(Some(closure.as_ref().unchecked_ref()));
     closure.forget();
