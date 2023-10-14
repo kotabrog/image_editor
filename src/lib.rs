@@ -4,9 +4,10 @@ use wasm_bindgen::prelude::*;
 #[macro_use]
 mod browser;
 mod engine;
+mod editor;
 
 fn image_editor() -> Result<()> {
-    engine::setup_input_event()?;
+    editor::setup()?;
     Ok(())
 }
 

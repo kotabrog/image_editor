@@ -6,6 +6,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 use web_sys::HtmlImageElement;
 use crate::browser;
 
+#[derive(Debug)]
 pub struct Image {
     element: HtmlImageElement,
     size: (u32, u32),

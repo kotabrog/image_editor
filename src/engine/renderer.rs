@@ -3,6 +3,7 @@ use web_sys::CanvasRenderingContext2d;
 use crate::browser;
 use super::Image;
 
+#[derive(Debug)]
 pub struct Renderer {
     context: CanvasRenderingContext2d,
     size: (u32, u32),
