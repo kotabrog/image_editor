@@ -9,26 +9,45 @@ use web_sys::{
 use crate::browser;
 use super::Editor;
 
-fn binarization(image_data: &mut [u8]) {
-    for i in 0..image_data.len() {
-        if i % 4 == 3 {
-            continue;
-        }
-        if image_data[i] > 128 {
-            image_data[i] = 255;
-        } else {
-            image_data[i] = 0;
-        }
-    }
+#[derive(Debug, Clone)]
+struct Temp {
+    pub index: usize,
+    pub max_index: usize,
 }
 
-fn handle_binarization(editor: Rc<Mutex<Editor>>) -> Result<()> {
+fn binarization_step(image_data: &mut [u8], temp: &mut Temp, step: usize) -> bool {
+    for i in 0..step {
+        let index = temp.index + i;
+        if index >= temp.max_index {
+            temp.index = temp.max_index;
+            return true;
+        }
+        if index % 4 == 3 {
+            continue;
+        }
+        if image_data[index] > 128 {
+            image_data[index] = 255;
+        } else {
+            image_data[index] = 0;
+        }
+    }
+    temp.index += step;
+    log!("{} / {}", temp.index, temp.max_index);
+    false
+}
+
+fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement, temp: &mut Temp, step: usize) -> Result<()> {
+    let mut continue_flag = false;
     match editor.try_lock() {
         Ok(mut editor) => {
             if let Some(image_data) = editor.get_image_data_mut() {
-                binarization(image_data);
-                editor.set_image_data()?;
-                editor.draw_image_data()?;
+                if binarization_step(image_data, temp, step) {
+                    editor.set_image_data()?;
+                    editor.draw_image_data()?;
+                    input_element.set_disabled(false);
+                } else {
+                    continue_flag = true;
+                }
             } else {
                 log!("No image data");
             }
@@ -37,12 +56,46 @@ fn handle_binarization(editor: Rc<Mutex<Editor>>) -> Result<()> {
             log!("Editor is locked");
         },
     }
+    if continue_flag {
+        let input_element = input_element.clone();
+        let mut temp = temp.clone();
+        let closure = browser::closure_once(move || {
+            browser::spawn_local(async move {
+                if let Err(err) = binarization_step_thread(editor, &input_element, &mut temp, step) {
+                    error!("{:#?}", err);
+                }
+            });
+        });
+        browser::set_timeout_with_callback(
+            &browser::window()?,
+            closure,
+        )?;
+    }
     Ok(())
 }
 
-fn binarization_thread(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement) -> Result<()> {
-    handle_binarization(editor)?;
-    input_element.set_disabled(false);
+fn first_step(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement) -> Result<()>{
+    let mut temp = Temp {
+        index: 0,
+        max_index: 0,
+    };
+    match editor.try_lock() {
+        Ok(mut editor) => {
+            if let Some(image_data) = editor.get_image_data_mut() {
+                temp.max_index = image_data.len();
+            } else {
+                log!("No image data");
+            }
+        },
+        Err(_) => {
+            log!("Editor is locked");
+        },
+    }
+    if temp.max_index > 0 {
+        binarization_step_thread(editor, input_element, &mut temp, 1000000)?;
+    } else {
+        input_element.set_disabled(false);
+    }
     Ok(())
 }
 
@@ -55,7 +108,7 @@ fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> 
             let editor_clone = editor.clone();
             let input_element = input_element.clone();
             browser::spawn_local(async move {
-                if let Err(err) = binarization_thread(editor_clone, &input_element) {
+                if let Err(err) = first_step(editor_clone, &input_element) {
                     error!("{:#?}", err);
                 }
             });
