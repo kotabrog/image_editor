@@ -1,5 +1,8 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::closure::{Closure, WasmClosure, WasmClosureFnOnce};
+use wasm_bindgen::{
+    JsCast,
+    closure::{Closure, WasmClosure, WasmClosureFnOnce}
+};
 use web_sys::{
     Window, Document, HtmlImageElement, Event,
 };
@@ -73,4 +76,19 @@ pub fn closure_wrap<T: WasmClosure + ?Sized>(data: Box<T>) -> Closure<T> {
 
 pub fn create_event_closure(f: impl FnMut(Event) + 'static) -> EventClosure {
     closure_wrap(Box::new(f))
+}
+
+pub fn set_timeout_with_callback(
+    window: &Window,
+    callback: Closure<dyn FnMut()>,
+) -> Result<()>
+{
+    window
+        .set_timeout_with_callback(
+            callback.as_ref().unchecked_ref(),
+        )
+        .map_err(|err| anyhow!("Could not set timeout {:#?}", err))
+        .map(|_| ())?;
+    callback.forget();
+    Ok(())
 }

@@ -2,7 +2,9 @@ use std::rc::Rc;
 use std::sync::Mutex;
 use anyhow::Result;
 use wasm_bindgen::JsCast;
-use web_sys::Event;
+use web_sys::{
+    Event, HtmlInputElement,
+};
 
 use crate::browser;
 use super::Editor;
@@ -20,7 +22,7 @@ fn binarization(image_data: &mut [u8]) {
     }
 }
 
-async fn handle_binarization(editor: Rc<Mutex<Editor>>) -> Result<()> {
+fn handle_binarization(editor: Rc<Mutex<Editor>>) -> Result<()> {
     match editor.try_lock() {
         Ok(mut editor) => {
             if let Some(image_data) = editor.get_image_data_mut() {
@@ -38,9 +40,8 @@ async fn handle_binarization(editor: Rc<Mutex<Editor>>) -> Result<()> {
     Ok(())
 }
 
-async fn binarization_thread(editor: Rc<Mutex<Editor>>, event: &Event) -> Result<()> {
-    handle_binarization(editor).await?;
-    let input_element = browser::event_current_target(&event)?;
+fn binarization_thread(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement) -> Result<()> {
+    handle_binarization(editor)?;
     input_element.set_disabled(false);
     Ok(())
 }
@@ -50,11 +51,19 @@ fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> 
     if input_element.checked() {
         log!("Checked");
         input_element.set_disabled(true);
-        browser::spawn_local(async move {
-            if let Err(err) = binarization_thread(editor, &event).await {
-                error!("{:#?}", err);
-            }
+        let closure = browser::closure_once(move || {
+            let editor_clone = editor.clone();
+            let input_element = input_element.clone();
+            browser::spawn_local(async move {
+                if let Err(err) = binarization_thread(editor_clone, &input_element) {
+                    error!("{:#?}", err);
+                }
+            });
         });
+        browser::set_timeout_with_callback(
+            &browser::window()?,
+            closure,
+        )?;
         log!("Checked end");
     } else {
         log!("Not Checked");
