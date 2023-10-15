@@ -19,9 +19,10 @@ async fn internal_draw_image_fit_canvas_from_source(editor: Rc<Mutex<Editor>>, s
         Ok(mut editor) => {
             editor.set_image(image);
             editor.draw_image_fit_canvas()?; 
+            editor.setup_image_data()?;
         },
         Err(_) => {
-            log!("Editor is locked")
+            log!("Editor is locked");
         },
     }
     Ok(())
@@ -67,7 +68,7 @@ fn setup_input_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<
 }
 
 pub fn setup_input_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let input_element = browser::file_input()?;
+    let input_element = browser::input("file_input")?;
 
     let closure = browser::create_event_closure(move |event: Event| {
         let editor_clone = editor.clone();

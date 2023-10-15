@@ -6,10 +6,10 @@ use web_sys::{
 
 use super::document;
 
-pub fn file_input() -> Result<HtmlInputElement> {
+pub fn input(id: &str) -> Result<HtmlInputElement> {
     document()?
-        .get_element_by_id("file_input")
-        .ok_or_else(|| anyhow!("No Input Element found with ID 'file_input'"))?
+        .get_element_by_id(id)
+        .ok_or_else(|| anyhow!("No Input Element found with ID {}", id))?
         .dyn_into::<HtmlInputElement>()
         .map_err(|element| anyhow!("Error converting {:#?} to HtmlInputElement", element))
 }

@@ -42,6 +42,7 @@ features = [
     "FileList",
     "File",
     "FileReader",
+    "ImageData",
 ]
 
 # These crates are used for running unit tests.

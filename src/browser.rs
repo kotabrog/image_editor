@@ -1,21 +1,25 @@
 use anyhow::{anyhow, Result};
-use wasm_bindgen::{
-    JsCast,
-    closure::{Closure, WasmClosure, WasmClosureFnOnce}
-};
+use wasm_bindgen::closure::{Closure, WasmClosure, WasmClosureFnOnce};
 use web_sys::{
-    Window, Document, HtmlImageElement, HtmlCanvasElement,
-    CanvasRenderingContext2d, Event,
+    Window, Document, HtmlImageElement, Event,
 };
 
 mod input;
 mod file_reader;
+mod canvas;
+mod image;
 
 pub use input::{
-    file_input, event_current_target,
+    input, event_current_target,
 };
 pub use file_reader::{
     file_reader, file_reader_result, file_reader_read_as_data_url,
+};
+pub use canvas::{
+    canvas, context_from_canvas, get_canvas_size,
+};
+pub use image::{
+    get_context_image_data, image_data,
 };
 
 pub type EventClosure = Closure<dyn FnMut(Event)>;
@@ -42,31 +46,6 @@ pub fn window() -> Result<Window> {
 
 pub fn document() -> Result<Document> {
     window()?.document().ok_or_else(|| anyhow!("No Document Found"))
-}
-
-pub fn canvas() -> Result<HtmlCanvasElement> {
-    document()?
-        .get_element_by_id("canvas")
-        .ok_or_else(|| anyhow!("No Canvas Element found with ID 'canvas'"))?
-        .dyn_into::<HtmlCanvasElement>()
-        .map_err(|element| anyhow!("Error converting {:#?} to HtmlCanvasElement", element))
-}
-
-pub fn context_from_canvas(canvas: &HtmlCanvasElement) -> Result<CanvasRenderingContext2d> {
-    canvas
-        .get_context("2d")
-        .map_err(|js_value| anyhow!("Error getting 2d context {:#?}", js_value))?
-        .ok_or_else(|| anyhow!("No 2d context found"))?
-        .dyn_into::<CanvasRenderingContext2d>()
-        .map_err(|element|
-            anyhow!("Error converting {:#?} to CanvasRenderingContext2d", element)
-        )
-}
-
-pub fn get_canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
-    let width = canvas.width();
-    let height = canvas.height();
-    (width, height)
 }
 
 pub fn new_image() -> Result<HtmlImageElement> {

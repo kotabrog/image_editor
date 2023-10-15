@@ -25,6 +25,10 @@ impl Image {
         &self.element
     }
 
+    pub fn size(&self) -> (u32, u32) {
+        self.size
+    }
+
     pub fn calculate_fitted_size(
         &self,
         max_width: f64,
