@@ -35,10 +35,6 @@ impl Input {
         self.element.set_disabled(disabled);
     }
 
-    pub fn checked(&self) -> bool {
-        self.element.checked()
-    }
-
     pub fn set_onchange(&self, closure: &browser::EventClosure) {
         self.element.set_onchange(Some(closure.as_ref().unchecked_ref()));
     }

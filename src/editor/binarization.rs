@@ -4,7 +4,7 @@ use anyhow::Result;
 use web_sys::Event;
 
 use crate::browser;
-use crate::engine::Input;
+use crate::engine::Button;
 use super::Editor;
 
 #[derive(Debug, Clone)]
@@ -33,7 +33,7 @@ fn binarization_step(image_data: &mut [u8], temp: &mut Temp, step: usize) -> boo
     false
 }
 
-fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &Input, temp: &mut Temp, step: usize) -> Result<()> {
+fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: &Button, temp: &mut Temp, step: usize) -> Result<()> {
     let mut continue_flag = false;
     match editor.try_lock() {
         Ok(mut editor) => {
@@ -41,7 +41,7 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &Input, te
                 if binarization_step(image_data, temp, step) {
                     editor.set_image_data()?;
                     editor.draw_image_data()?;
-                    input_element.set_disabled(false);
+                    button_element.set_disabled(false);
                 } else {
                     continue_flag = true;
                 }
@@ -54,11 +54,11 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &Input, te
         },
     }
     if continue_flag {
-        let input_element = input_element.clone();
+        let button_element = button_element.clone();
         let mut temp = temp.clone();
         let closure = browser::closure_once(move || {
             browser::spawn_local(async move {
-                if let Err(err) = binarization_step_thread(editor, &input_element, &mut temp, step) {
+                if let Err(err) = binarization_step_thread(editor, &button_element, &mut temp, step) {
                     error!("{:#?}", err);
                 }
             });
@@ -71,7 +71,7 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &Input, te
     Ok(())
 }
 
-fn first_step(editor: Rc<Mutex<Editor>>, input_element: &Input) -> Result<()>{
+fn first_step(editor: Rc<Mutex<Editor>>, button_element: &Button) -> Result<()>{
     let mut temp = Temp {
         index: 0,
         max_index: 0,
@@ -89,46 +89,34 @@ fn first_step(editor: Rc<Mutex<Editor>>, input_element: &Input) -> Result<()>{
         },
     }
     if temp.max_index > 0 {
-        binarization_step_thread(editor, input_element, &mut temp, 1000000)?;
+        binarization_step_thread(editor, button_element, &mut temp, 1000000)?;
     } else {
-        input_element.set_disabled(false);
+        button_element.set_disabled(false);
     }
     Ok(())
 }
 
 fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<()> {
-    let input_element = Input::new_from_event(&event)?;
-    if input_element.checked() {
-        log!("Checked");
-        input_element.set_disabled(true);
-        let closure = browser::closure_once(move || {
-            let editor_clone = editor.clone();
-            let input_element = input_element.clone();
-            browser::spawn_local(async move {
-                if let Err(err) = first_step(editor_clone, &input_element) {
-                    error!("{:#?}", err);
-                }
-            });
+    let button_element = Button::new_from_event(&event)?;
+    button_element.set_disabled(true);
+    let closure = browser::closure_once(move || {
+        let editor_clone = editor.clone();
+        let button_element = button_element.clone();
+        browser::spawn_local(async move {
+            if let Err(err) = first_step(editor_clone, &button_element) {
+                error!("{:#?}", err);
+            }
         });
-        browser::set_timeout_with_callback(
-            &browser::window()?,
-            closure,
-        )?;
-        log!("Checked end");
-    } else {
-        log!("Not Checked");
-        match editor.try_lock() {
-            Ok(_) => {},
-            Err(_) => {
-                log!("Editor is locked");
-            },
-        }
-    }
+    });
+    browser::set_timeout_with_callback(
+        &browser::window()?,
+        closure,
+    )?;
     Ok(())
 }
 
 pub fn setup_binarization_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let input_element = Input::new_from_id("test")?;
+    let button_element = Button::new_from_id("binarization")?;
 
     let closure = browser::create_event_closure(move |event: Event| {
         let editor_clone = editor.clone();
@@ -137,7 +125,7 @@ pub fn setup_binarization_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
         }
     });
 
-    input_element.set_onchange(&closure);
+    button_element.add_event_listener_with_callback(&closure)?;
     closure.forget();
 
     Ok(())

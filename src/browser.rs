@@ -11,6 +11,7 @@ mod input;
 mod file_reader;
 mod canvas;
 mod image;
+mod button;
 
 pub use input::{
     input, event_current_target,
@@ -23,6 +24,10 @@ pub use canvas::{
 };
 pub use image::{
     get_context_image_data, image_data,
+};
+pub use button::{
+    button, event_current_target_to_button,
+    add_event_listener_with_callback_button,
 };
 
 pub type EventClosure = Closure<dyn FnMut(Event)>;
