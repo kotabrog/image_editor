@@ -1,12 +1,10 @@
 use std::rc::Rc;
 use std::sync::Mutex;
 use anyhow::Result;
-use wasm_bindgen::JsCast;
-use web_sys::{
-    Event, HtmlInputElement,
-};
+use web_sys::Event;
 
 use crate::browser;
+use crate::engine::Input;
 use super::Editor;
 
 #[derive(Debug, Clone)]
@@ -32,11 +30,10 @@ fn binarization_step(image_data: &mut [u8], temp: &mut Temp, step: usize) -> boo
         }
     }
     temp.index += step;
-    log!("{} / {}", temp.index, temp.max_index);
     false
 }
 
-fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement, temp: &mut Temp, step: usize) -> Result<()> {
+fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &Input, temp: &mut Temp, step: usize) -> Result<()> {
     let mut continue_flag = false;
     match editor.try_lock() {
         Ok(mut editor) => {
@@ -74,7 +71,7 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, input_element: &HtmlInput
     Ok(())
 }
 
-fn first_step(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement) -> Result<()>{
+fn first_step(editor: Rc<Mutex<Editor>>, input_element: &Input) -> Result<()>{
     let mut temp = Temp {
         index: 0,
         max_index: 0,
@@ -100,7 +97,7 @@ fn first_step(editor: Rc<Mutex<Editor>>, input_element: &HtmlInputElement) -> Re
 }
 
 fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<()> {
-    let input_element = browser::event_current_target(&event)?;
+    let input_element = Input::new_from_event(&event)?;
     if input_element.checked() {
         log!("Checked");
         input_element.set_disabled(true);
@@ -131,7 +128,7 @@ fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> 
 }
 
 pub fn setup_binarization_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let input_element = browser::input("test")?;
+    let input_element = Input::new_from_id("test")?;
 
     let closure = browser::create_event_closure(move |event: Event| {
         let editor_clone = editor.clone();
@@ -140,7 +137,7 @@ pub fn setup_binarization_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
         }
     });
 
-    input_element.set_onchange(Some(closure.as_ref().unchecked_ref()));
+    input_element.set_onchange(&closure);
     closure.forget();
 
     Ok(())

@@ -45,7 +45,7 @@ fn setup_input_event_closure_reader_closure(editor: Rc<Mutex<Editor>>, reader: &
 }
 
 fn setup_input_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<()> {
-    let input = Input::new_from_event(event)?;
+    let input = Input::new_from_event(&event)?;
     if let Some(file) = input.get_first_image_file()? {
         let reader = browser::file_reader()?;
 
@@ -68,7 +68,7 @@ fn setup_input_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<
 }
 
 pub fn setup_input_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let input_element = browser::input("file_input")?;
+    let input_element = Input::new_from_id("file_input")?;
 
     let closure = browser::create_event_closure(move |event: Event| {
         let editor_clone = editor.clone();
@@ -77,7 +77,7 @@ pub fn setup_input_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
         }
     });
 
-    input_element.set_onchange(Some(closure.as_ref().unchecked_ref()));
+    input_element.set_onchange(&closure);
     closure.forget();
 
     Ok(())
