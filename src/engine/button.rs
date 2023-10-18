@@ -1,5 +1,4 @@
 use anyhow::Result;
-use wasm_bindgen::JsCast;
 use web_sys::{
     HtmlButtonElement, Event,
 };

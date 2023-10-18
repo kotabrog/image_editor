@@ -18,7 +18,7 @@ async fn internal_draw_image_fit_canvas_from_source(editor: Rc<Mutex<Editor>>, s
     match editor.try_lock() {
         Ok(mut editor) => {
             editor.set_image(image);
-            editor.draw_image_fit_canvas()?; 
+            editor.draw_image_fit_canvas()?;
             editor.setup_image_data()?;
         },
         Err(_) => {

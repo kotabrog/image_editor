@@ -2,7 +2,7 @@ use anyhow::{Result, anyhow};
 use web_sys::CanvasRenderingContext2d;
 use crate::browser;
 use super::{
-    Image, ImageDataWrapper
+    Image, ImageDataWrapper, Canvas,
 };
 
 #[derive(Debug)]
@@ -16,6 +16,15 @@ impl Renderer {
         let canvas = browser::canvas()?;
         let context = browser::context_from_canvas(&canvas)?;
         let (width, height) = browser::get_canvas_size(&canvas);
+        Ok(Self {
+            context,
+            size: (width, height),
+        })
+    }
+
+    pub fn create_from_canvas(canvas: &Canvas) -> Result<Self> {
+        let context = canvas.to_context()?;
+        let (width, height) = canvas.size();
         Ok(Self {
             context,
             size: (width, height),
@@ -54,5 +63,11 @@ impl Renderer {
             &image_data.image_data(), 0.0, 0.0)
             .map_err(|err| anyhow!("Could not draw image data {:#?}", err))
             .map(|_| ())
+    }
+
+    pub async fn draw_image_data_fit_canvas(&self, image_data: &ImageDataWrapper) -> Result<()> {
+        let image = image_data.to_image().await?;
+        self.clear();
+        self.draw_image_fit_canvas(&image)
     }
 }

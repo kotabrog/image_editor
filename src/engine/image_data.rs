@@ -3,6 +3,9 @@ use web_sys::{
     ImageData, CanvasRenderingContext2d,
 };
 use crate::browser;
+use super::{
+    Image, Canvas, Renderer,
+};
 
 #[derive(Debug)]
 pub struct ImageDataWrapper {
@@ -50,5 +53,15 @@ impl ImageDataWrapper {
     pub fn set_image_data(&mut self) -> Result<()> {
         self.image_data = browser::image_data(&self.data, self.width, self.height)?;
         Ok(())
+    }
+
+    pub async fn to_image(&self) -> Result<Image> {
+        let canvas = Canvas::new_from_name(self.width, self.height)?;
+        let render = Renderer::create_from_canvas(&canvas)?;
+        render.draw_image_data(&self)?;
+
+        let data_url = canvas.to_data_url()?;
+
+        Image::load_image(&data_url).await
     }
 }

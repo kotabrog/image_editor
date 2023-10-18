@@ -1,15 +1,20 @@
 use anyhow::{anyhow, Result};
 use wasm_bindgen::Clamped;
 use web_sys::{
-    CanvasRenderingContext2d, ImageData
+    CanvasRenderingContext2d, ImageData, HtmlImageElement
 };
+
+pub fn new_image() -> Result<HtmlImageElement> {
+    HtmlImageElement::new()
+        .map_err(|err| anyhow!("Could not create HtmlImageElement {:#?}", err))
+}
 
 pub fn get_context_image_data(context: &CanvasRenderingContext2d,
     x: u32, y: u32, width: u32, height: u32)
 -> Result<ImageData> {
-context
-.get_image_data(x as f64, y as f64, width as f64, height as f64)
-.map_err(|err| anyhow!("Could not get image data {:#?}", err))
+    context
+        .get_image_data(x as f64, y as f64, width as f64, height as f64)
+        .map_err(|err| anyhow!("Could not get image data {:#?}", err))
 }
 
 pub fn image_data(data: &[u8], width: u32, height: u32) -> Result<ImageData> {

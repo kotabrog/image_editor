@@ -2,11 +2,12 @@ use std::rc::Rc;
 use std::sync::Mutex;
 use anyhow::Result;
 use crate::engine::{
-    self, Image, Renderer, ImageDataWrapper
+    self, Image, Renderer, ImageDataWrapper, Canvas,
 };
 
 mod input;
 mod binarization;
+mod save;
 
 #[derive(Debug)]
 pub struct Editor {
@@ -21,6 +22,26 @@ impl Editor {
             image: None,
             renderer,
             image_data: None,
+        }
+    }
+
+    pub fn get_image_data(&self) -> Option<&ImageDataWrapper> {
+        self.image_data.as_ref()
+    }
+
+    pub fn get_image_data_mut(&mut self) -> Option<&mut [u8]> {
+        if let Some(image_data) = &mut self.image_data {
+            Some(image_data.data_mut())
+        } else {
+            None
+        }
+    }
+
+    pub fn get_image_size(&self) -> Option<(u32, u32)> {
+        if let Some(image) = &self.image {
+            Some(image.size())
+        } else {
+            None
         }
     }
 
@@ -39,19 +60,15 @@ impl Editor {
     pub fn setup_image_data(&mut self) -> Result<()> {
         if let Some(image) = &self.image {
             let (width, height) = image.size();
+            let save_canvas = Canvas::new_from_name(width, height)?;
+            let render = Renderer::create_from_canvas(&save_canvas)?;
+            render.draw_image(&image, width as f64, height as f64)?;
+
             let image_data = ImageDataWrapper::new_from_context(
-                &self.renderer.context(), 0, 0, width, height)?;
+                &render.context(), 0, 0, width, height)?;
             self.image_data = Some(image_data);
         }
         Ok(())
-    }
-
-    pub fn get_image_data_mut(&mut self) -> Option<&mut [u8]> {
-        if let Some(image_data) = &mut self.image_data {
-            Some(image_data.data_mut())
-        } else {
-            None
-        }
     }
 
     pub fn set_image_data(&mut self) -> Result<()> {
@@ -61,10 +78,9 @@ impl Editor {
         Ok(())
     }
 
-    pub fn draw_image_data(&self) -> Result<()> {
+    pub async fn draw_image_data(&self) -> Result<()> {
         if let Some(image_data) = &self.image_data {
-            self.renderer.clear();
-            self.renderer.draw_image_data(&image_data)?;
+            self.renderer.draw_image_data_fit_canvas(&image_data).await?;
         }
         Ok(())
     }
@@ -76,5 +92,6 @@ pub fn setup() -> Result<()> {
     )));
     input::setup_input_event(editor.clone())?;
     binarization::setup_binarization_event(editor.clone())?;
+    save::setup_save_event(editor.clone())?;
     Ok(())
 }
