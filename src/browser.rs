@@ -106,3 +106,13 @@ pub fn set_timeout_with_callback(
     callback.forget();
     Ok(())
 }
+
+pub fn set_callback_once<F>(fn_once: F) -> Result<()>
+where
+    F: 'static + FnOnce(),
+{
+    set_timeout_with_callback(
+        &window().unwrap(),
+        closure_once(fn_once),
+    )
+}

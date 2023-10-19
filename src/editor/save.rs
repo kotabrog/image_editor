@@ -10,30 +10,25 @@ use crate::engine::{
 use super::Editor;
 
 fn setup_save_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    match editor.try_lock() {
-        Ok(editor) => {
-            let image = if let Some(image) = editor.get_image_data() {
-                image
-            } else {
-                log!("No image to save");
-                return Ok(());
-            };
-            let (width, height) = image.size();
-            let save_canvas = Canvas::new_from_name(width, height)?;
-            let render = Renderer::create_from_canvas(&save_canvas)?;
-            render.draw_image_data(&image)?;
+    if let Some(editor) = Editor::try_lock(&editor) {
+        let image = if let Some(image) = editor.get_image_data() {
+            image
+        } else {
+            log!("No image to save");
+            return Ok(());
+        };
+        let (width, height) = image.size();
+        let save_canvas = Canvas::new_from_name(width, height)?;
+        let render = Renderer::create_from_canvas(&save_canvas)?;
+        render.draw_image_data(&image)?;
 
-            let data_url = save_canvas.to_data_url()?;
+        let data_url = save_canvas.to_data_url()?;
 
-            let anchor = Anchor::new_from_name()?;
-            anchor.set_href(&data_url);
-            anchor.set_download("image.png");
+        let anchor = Anchor::new_from_name()?;
+        anchor.set_href(&data_url);
+        anchor.set_download("image.png");
 
-            anchor.click();
-        },
-        Err(_) => {
-            log!("Editor is locked");
-        },
+        anchor.click();
     }
     Ok(())
 }

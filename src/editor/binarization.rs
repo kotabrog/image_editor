@@ -33,82 +33,56 @@ fn binarization_step(image_data: &mut [u8], temp: &mut Temp, step: usize) -> boo
     false
 }
 
-fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: &Button, temp: &mut Temp, step: usize) -> Result<()> {
+fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: Button, mut temp: Temp, step: usize) -> Result<()> {
     let mut continue_flag = false;
-    match editor.try_lock() {
-        Ok(mut editor) => {
-            if let Some(image_data) = editor.get_image_data_mut() {
-                if binarization_step(image_data, temp, step) {
-                    editor.set_image_data()?;
-                } else {
-                    continue_flag = true;
-                }
+    if let Some(mut editor) = Editor::try_lock(&editor) {
+        if let Some(image_data) = editor.get_image_data_mut() {
+            if binarization_step(image_data, &mut temp, step) {
+                editor.set_image_data()?;
             } else {
-                log!("No image data");
+                continue_flag = true;
             }
-        },
-        Err(_) => {
-            log!("Editor is locked");
-        },
+        } else {
+            log!("No image data");
+        }
     }
     if continue_flag {
-        let button_element = button_element.clone();
-        let mut temp = temp.clone();
-        let closure = browser::closure_once(move || {
+        browser::set_callback_once(move || {
             browser::spawn_local(async move {
-                if let Err(err) = binarization_step_thread(editor, &button_element, &mut temp, step) {
+                if let Err(err) = binarization_step_thread(editor, button_element, temp, step) {
                     error!("{:#?}", err);
                 }
             });
-        });
-        browser::set_timeout_with_callback(
-            &browser::window()?,
-            closure,
-        )?;
+        })?;
     } else {
-        let button_element_clone = button_element.clone();
-        let closure = browser::closure_once(move || {
+        browser::set_callback_once(move || {
             browser::spawn_local(async move {
-                match editor.try_lock() {
-                    Ok(editor) => {
-                        if let Err(err) = editor.draw_image_data().await {
-                            error!("{:#?}", err);
-                        }
-                    },
-                    Err(_) => {
-                        log!("Editor is locked");
-                    },
+                if let Some(editor) = Editor::try_lock(&editor) {
+                    if let Err(err) = editor.draw_image_data().await {
+                        error!("{:#?}", err);
+                    }
                 }
-                button_element_clone.set_disabled(false);
+                button_element.set_disabled(false);
             });
-        });
-        browser::set_timeout_with_callback(
-            &browser::window()?,
-            closure,
-        )?;
+        })?;
     }
     Ok(())
 }
 
-fn first_step(editor: Rc<Mutex<Editor>>, button_element: &Button) -> Result<()>{
+fn first_step(editor: Rc<Mutex<Editor>>, button_element: Button) -> Result<()>{
     let mut temp = Temp {
         index: 0,
         max_index: 0,
     };
-    match editor.try_lock() {
-        Ok(mut editor) => {
-            if let Some(image_data) = editor.get_image_data_mut() {
-                temp.max_index = image_data.len();
-            } else {
-                log!("No image data");
-            }
-        },
-        Err(_) => {
-            log!("Editor is locked");
-        },
+    if let Some(mut editor) = Editor::try_lock(&editor) {
+        if let Some(image_data) = editor.get_image_data_mut() {
+            temp.max_index = image_data.len();
+        } else {
+            log!("No image data");
+        }
     }
     if temp.max_index > 0 {
-        binarization_step_thread(editor, button_element, &mut temp, 1000000)?;
+        binarization_step_thread(editor, button_element, temp, 1000000)?;
     } else {
         button_element.set_disabled(false);
     }
@@ -118,20 +92,13 @@ fn first_step(editor: Rc<Mutex<Editor>>, button_element: &Button) -> Result<()>{
 fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<()> {
     let button_element = Button::new_from_event(&event)?;
     button_element.set_disabled(true);
-    let closure = browser::closure_once(move || {
-        let editor_clone = editor.clone();
-        let button_element = button_element.clone();
+    browser::set_callback_once(move || {
         browser::spawn_local(async move {
-            if let Err(err) = first_step(editor_clone, &button_element) {
+            if let Err(err) = first_step(editor, button_element) {
                 error!("{:#?}", err);
             }
         });
-    });
-    browser::set_timeout_with_callback(
-        &browser::window()?,
-        closure,
-    )?;
-    Ok(())
+    })
 }
 
 pub fn setup_binarization_event(editor: Rc<Mutex<Editor>>) -> Result<()> {

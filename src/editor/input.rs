@@ -15,15 +15,10 @@ use super::Editor;
 async fn internal_draw_image_fit_canvas_from_source(editor: Rc<Mutex<Editor>>, source: String) -> Result<()> {
     let image = Image::load_image(source.as_str())
          .await?;
-    match editor.try_lock() {
-        Ok(mut editor) => {
-            editor.set_image(image);
-            editor.draw_image_fit_canvas()?;
-            editor.setup_image_data()?;
-        },
-        Err(_) => {
-            log!("Editor is locked");
-        },
+    if let Some(mut editor) = Editor::try_lock(&editor) {
+        editor.set_image(image);
+        editor.draw_image_fit_canvas()?;
+        editor.setup_image_data()?;
     }
     Ok(())
 }

@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 use anyhow::Result;
 use crate::engine::{
     self, Image, Renderer, ImageDataWrapper, Canvas,
@@ -22,6 +22,16 @@ impl Editor {
             image: None,
             renderer,
             image_data: None,
+        }
+    }
+
+    pub fn try_lock<'a>(editor: &'a Rc<Mutex<Self>>) -> Option<MutexGuard<'a, Editor>> {
+        match editor.try_lock() {
+            Ok(editor) => Some(editor),
+            Err(_) => {
+                log!("Editor is locked");
+                None
+            },
         }
     }
 
