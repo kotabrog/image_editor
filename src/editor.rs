@@ -1,28 +1,56 @@
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::{Mutex, MutexGuard};
 use anyhow::Result;
 use crate::engine::{
-    self, Image, Renderer, ImageDataWrapper, Canvas,
+    self, Image, Renderer, ImageDataWrapper, Canvas, DisplayElement,
+    Input, Button,
 };
 
 mod input;
 mod binarization;
 mod save;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EditorElement {
+    Input,
+    Binarization,
+    Save,
+}
+
 #[derive(Debug)]
 pub struct Editor {
     image: Option<Image>,
     renderer: Renderer,
     image_data: Option<ImageDataWrapper>,
+    display_elements: HashMap<EditorElement, Box<dyn DisplayElement>>,
 }
 
 impl Editor {
-    pub fn new(renderer: Renderer) -> Self {
-        Self {
+    pub fn new(renderer: Renderer) -> Result<Self> {
+        Ok(Self {
             image: None,
             renderer,
             image_data: None,
-        }
+            display_elements: Self::make_display_elements()?,
+        })
+    }
+
+    fn make_display_elements() -> Result<HashMap<EditorElement, Box<dyn DisplayElement>>> {
+        let mut display_elements: HashMap<EditorElement, Box<dyn DisplayElement>> = HashMap::new();
+        display_elements.insert(
+            EditorElement::Input,
+            Box::new(Input::new_from_id("file_input")?)
+        );
+        display_elements.insert(
+            EditorElement::Binarization,
+            Box::new(Button::new_from_id("binarization")?)
+        );
+        display_elements.insert(
+            EditorElement::Save,
+            Box::new(Button::new_from_id("save")?)
+        );
+        Ok(display_elements)
     }
 
     pub fn try_lock<'a>(editor: &'a Rc<Mutex<Self>>) -> Option<MutexGuard<'a, Editor>> {
@@ -45,22 +73,6 @@ impl Editor {
         } else {
             None
         }
-    }
-
-    pub fn get_image_size(&self) -> Option<(u32, u32)> {
-        if let Some(image) = &self.image {
-            Some(image.size())
-        } else {
-            None
-        }
-    }
-
-    pub fn draw_image_fit_canvas(&self) -> Result<()> {
-        if let Some(image) = &self.image {
-            self.renderer.clear();
-            self.renderer.draw_image_fit_canvas(&image)?;
-        }
-        Ok(())
     }
 
     pub fn set_image(&mut self, image: Image) {
@@ -88,18 +100,32 @@ impl Editor {
         Ok(())
     }
 
+    pub fn draw_image_fit_canvas(&self) -> Result<()> {
+        if let Some(image) = &self.image {
+            self.renderer.clear();
+            self.renderer.draw_image_fit_canvas(&image)?;
+        }
+        Ok(())
+    }
+
     pub async fn draw_image_data(&self) -> Result<()> {
         if let Some(image_data) = &self.image_data {
             self.renderer.draw_image_data_fit_canvas(&image_data).await?;
         }
         Ok(())
     }
+
+    pub fn set_disabled(&self, disabled: bool) {
+        for display_element in self.display_elements.values() {
+            display_element.set_disabled(disabled);
+        }
+    }
 }
 
 pub fn setup() -> Result<()> {
     let editor = Rc::new(
         Mutex::new(Editor::new(engine::Renderer::new()?
-    )));
+    )?));
     input::setup_input_event(editor.clone())?;
     binarization::setup_binarization_event(editor.clone())?;
     save::setup_save_event(editor.clone())?;

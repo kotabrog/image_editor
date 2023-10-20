@@ -13,3 +13,7 @@ pub use image_data::ImageDataWrapper;
 pub use button::Button;
 pub use anchor::Anchor;
 pub use canvas::Canvas;
+
+pub trait DisplayElement: std::fmt::Debug {
+    fn set_disabled(&self, disabled: bool);
+}

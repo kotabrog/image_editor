@@ -3,6 +3,7 @@ use web_sys::{
     HtmlButtonElement, Event,
 };
 use crate::browser;
+use super::DisplayElement;
 
 #[derive(Debug, Clone)]
 pub struct Button {
@@ -30,10 +31,6 @@ impl Button {
         self.element.id()
     }
 
-    pub fn set_disabled(&self, disabled: bool) {
-        self.element.set_disabled(disabled);
-    }
-
     pub fn add_event_listener_with_callback(
         &self,
         closure: &browser::EventClosure,
@@ -43,5 +40,11 @@ impl Button {
             "click",
             closure,
         )
+    }
+}
+
+impl DisplayElement for Button {
+    fn set_disabled(&self, disabled: bool) {
+        self.element.set_disabled(disabled);
     }
 }

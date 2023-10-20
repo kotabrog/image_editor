@@ -4,6 +4,7 @@ use web_sys::{
     HtmlInputElement, Event, File,
 };
 use crate::browser;
+use super::DisplayElement;
 
 #[derive(Debug, Clone)]
 pub struct Input {
@@ -31,10 +32,6 @@ impl Input {
         self.element.id()
     }
 
-    pub fn set_disabled(&self, disabled: bool) {
-        self.element.set_disabled(disabled);
-    }
-
     pub fn set_onchange(&self, closure: &browser::EventClosure) {
         self.element.set_onchange(Some(closure.as_ref().unchecked_ref()));
     }
@@ -49,5 +46,11 @@ impl Input {
             }
         }
         Ok(None)
+    }
+}
+
+impl DisplayElement for Input {
+    fn set_disabled(&self, disabled: bool) {
+        self.element.set_disabled(disabled);
     }
 }
