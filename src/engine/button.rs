@@ -27,9 +27,9 @@ impl Button {
         Ok(Self::new(element))
     }
 
-    pub fn id(&self) -> String {
-        self.element.id()
-    }
+    // pub fn id(&self) -> String {
+    //     self.element.id()
+    // }
 
     pub fn add_event_listener_with_callback(
         &self,

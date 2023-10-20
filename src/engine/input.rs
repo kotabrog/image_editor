@@ -28,9 +28,9 @@ impl Input {
         Ok(Self::new(element))
     }
 
-    pub fn id(&self) -> String {
-        self.element.id()
-    }
+    // pub fn id(&self) -> String {
+    //     self.element.id()
+    // }
 
     pub fn set_onchange(&self, closure: &browser::EventClosure) {
         self.element.set_onchange(Some(closure.as_ref().unchecked_ref()));

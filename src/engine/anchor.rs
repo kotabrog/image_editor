@@ -19,10 +19,6 @@ impl Anchor {
         Ok(Self::new(element))
     }
 
-    pub fn get_element(&self) -> &HtmlAnchorElement {
-        &self.element
-    }
-
     pub fn set_href(&self, href: &str) {
         self.element.set_href(href);
     }

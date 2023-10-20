@@ -4,7 +4,7 @@ use anyhow::Result;
 use web_sys::Event;
 
 use crate::browser;
-use crate::engine::{Button, DisplayElement};
+use crate::engine::Button;
 use super::Editor;
 
 #[derive(Debug, Clone)]
@@ -33,6 +33,19 @@ fn binarization_step(image_data: &mut [u8], temp: &mut Temp, step: usize) -> boo
     false
 }
 
+fn final_step(editor: Rc<Mutex<Editor>>) -> Result<()> {
+    browser::set_callback_once(move || {
+        browser::spawn_local(async move {
+            if let Some(editor) = Editor::try_lock(&editor) {
+                if let Err(err) = editor.draw_image_data().await {
+                    error!("{:#?}", err);
+                }
+                editor.set_disabled(false);
+            }
+        });
+    })
+}
+
 fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: Button, mut temp: Temp, step: usize) -> Result<()> {
     let mut continue_flag = false;
     if let Some(mut editor) = Editor::try_lock(&editor) {
@@ -55,16 +68,7 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: Button, m
             });
         })?;
     } else {
-        browser::set_callback_once(move || {
-            browser::spawn_local(async move {
-                if let Some(editor) = Editor::try_lock(&editor) {
-                    if let Err(err) = editor.draw_image_data().await {
-                        error!("{:#?}", err);
-                    }
-                    editor.set_disabled(false);
-                }
-            });
-        })?;
+        final_step(editor)?
     }
     Ok(())
 }
@@ -107,7 +111,7 @@ fn first_step(editor: Rc<Mutex<Editor>>, button_element: Button) -> Result<()>{
 
 fn setup_binarization_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<()> {
     let button_element = Button::new_from_event(&event)?;
-    if let Some(mut editor) = Editor::try_lock(&editor) {
+    if let Some(editor) = Editor::try_lock(&editor) {
         editor.set_disabled(true);
     } else {
         return Ok(())

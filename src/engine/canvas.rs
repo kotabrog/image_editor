@@ -17,10 +17,6 @@ impl Canvas {
         })
     }
 
-    pub fn get_element(&self) -> &HtmlCanvasElement {
-        &self.canvas
-    }
-
     pub fn to_context(&self) -> Result<CanvasRenderingContext2d> {
         browser::context_from_canvas(&self.canvas)
     }

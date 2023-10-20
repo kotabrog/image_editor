@@ -31,10 +31,6 @@ impl Renderer {
         })
     }
 
-    pub fn size(&self) -> (u32, u32) {
-        self.size
-    }
-
     pub fn context(&self) -> &CanvasRenderingContext2d {
         &self.context
     }

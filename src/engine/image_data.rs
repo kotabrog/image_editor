@@ -34,10 +34,6 @@ impl ImageDataWrapper {
             .map(Self::new)
     }
 
-    pub fn data(&self) -> &[u8] {
-        &self.data
-    }
-
     pub fn data_mut(&mut self) -> &mut [u8] {
         &mut self.data
     }
