@@ -4,7 +4,7 @@ use std::sync::{Mutex, MutexGuard};
 use anyhow::Result;
 use crate::engine::{
     self, Image, Renderer, ImageDataWrapper, Canvas, DisplayElement,
-    Input, Button, Rect,
+    Input, Button, Rect, Label,
 };
 
 mod input;
@@ -13,6 +13,7 @@ mod save;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EditorElement {
+    InputLabel,
     Input,
     Binarization,
     Save,
@@ -38,6 +39,10 @@ impl Editor {
 
     fn make_display_elements() -> Result<HashMap<EditorElement, Box<dyn DisplayElement>>> {
         let mut display_elements: HashMap<EditorElement, Box<dyn DisplayElement>> = HashMap::new();
+        display_elements.insert(
+            EditorElement::InputLabel,
+            Box::new(Label::new_from_id("file_input_label")?)
+        );
         display_elements.insert(
             EditorElement::Input,
             Box::new(Input::new_from_id("file_input")?)

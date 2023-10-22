@@ -4,7 +4,7 @@ use wasm_bindgen::{
     closure::{Closure, WasmClosure, WasmClosureFnOnce}
 };
 use web_sys::{
-    Window, Document, Event,
+    Window, Document, Event, HtmlLabelElement,
 };
 
 mod input;
@@ -57,6 +57,14 @@ pub fn window() -> Result<Window> {
 
 pub fn document() -> Result<Document> {
     window()?.document().ok_or_else(|| anyhow!("No Document Found"))
+}
+
+pub fn label(id: &str) -> Result<HtmlLabelElement> {
+    document()?
+        .get_element_by_id(id)
+        .ok_or_else(|| anyhow!("No Label Element found with ID {}", id))?
+        .dyn_into::<HtmlLabelElement>()
+        .map_err(|element| anyhow!("Error converting {:#?} to HtmlLabelElement", element))
 }
 
 // pub fn css_style_set_property(

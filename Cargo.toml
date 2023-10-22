@@ -37,6 +37,7 @@ features = [
     "HtmlInputElement",
     "HtmlButtonElement",
     "HtmlAnchorElement",
+    "HtmlLabelElement",
     "CanvasRenderingContext2d",
     "Window",
     "Document",
@@ -47,6 +48,7 @@ features = [
     "ImageData",
     "CssStyleDeclaration",
     "DomRect",
+    "DomTokenList",
 ]
 
 # These crates are used for running unit tests.
