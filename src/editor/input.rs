@@ -17,6 +17,7 @@ async fn internal_draw_image_fit_canvas_from_source(editor: Rc<Mutex<Editor>>, s
          .await?;
     if let Some(mut editor) = Editor::try_lock(&editor) {
         editor.set_image(image);
+        editor.update_canvas_size()?;
         editor.draw_image_fit_canvas()?;
         editor.setup_image_data()?;
     }

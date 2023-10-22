@@ -25,6 +25,11 @@ pub fn create_canvas(width: u32, height: u32) -> Result<HtmlCanvasElement> {
     Ok(canvas)
 }
 
+pub fn get_canvas_display_size(canvas: &HtmlCanvasElement) -> (f64, f64) {
+    let rect = canvas.get_bounding_client_rect();
+    (rect.width(), rect.height())
+}
+
 pub fn get_canvas_size(canvas: &HtmlCanvasElement) -> (u32, u32) {
     let width = canvas.width();
     let height = canvas.height();

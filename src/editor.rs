@@ -82,7 +82,7 @@ impl Editor {
     pub fn setup_image_data(&mut self) -> Result<()> {
         if let Some(image) = &self.image {
             let (width, height) = image.size();
-            let save_canvas = Canvas::new_from_name(width, height)?;
+            let save_canvas = Canvas::new(width, height)?;
             let render = Renderer::create_from_canvas(&save_canvas)?;
             render.draw_image(&image, width as f64, height as f64)?;
 
@@ -98,6 +98,10 @@ impl Editor {
             image_data.set_image_data()?;
         }
         Ok(())
+    }
+
+    pub fn update_canvas_size(&mut self) -> Result<()> {
+        self.renderer.update_canvas_size()
     }
 
     pub fn draw_image_fit_canvas(&self) -> Result<()> {

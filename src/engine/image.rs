@@ -34,15 +34,18 @@ impl Image {
         max_width: f64,
         max_height: f64,
     ) -> (f64, f64) {
-        let width = self.size.0 as f64;
-        let height = self.size.1 as f64;
+        let mut width = self.size.0 as f64;
+        let mut height = self.size.1 as f64;
         let ratio = width / height;
-        let (dw, dh) = if width > height {
-            (max_width, max_width / ratio)
-        } else {
-            (max_height * ratio, max_height)
-        };
-        (dw, dh)
+        if width > max_width {
+            width = max_width;
+            height = width / ratio;
+        }
+        if height > max_height {
+            height = max_height;
+            width = height * ratio;
+        }
+        (width, height)
     }
 
     pub async fn load_image(source: &str) -> Result<Self> {

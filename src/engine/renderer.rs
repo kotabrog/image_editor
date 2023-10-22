@@ -13,9 +13,10 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Result<Self> {
-        let canvas = browser::canvas()?;
-        let context = browser::context_from_canvas(&canvas)?;
-        let (width, height) = browser::get_canvas_size(&canvas);
+        let canvas = Canvas::new_from_element(browser::canvas()?);
+        canvas.set_canvas_size_from_display_size()?;
+        let (width, height) = canvas.size();
+        let context = canvas.to_context()?;
         Ok(Self {
             context,
             size: (width, height),
@@ -33,6 +34,13 @@ impl Renderer {
 
     pub fn context(&self) -> &CanvasRenderingContext2d {
         &self.context
+    }
+
+    pub fn update_canvas_size(&mut self) -> Result<()> {
+        let canvas = Canvas::new_from_element(browser::canvas()?);
+        canvas.set_canvas_size_from_display_size()?;
+        self.size = canvas.size();
+        Ok(())
     }
 
     pub fn clear(&self) {

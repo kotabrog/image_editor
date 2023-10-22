@@ -3,14 +3,26 @@
   <head>
     <meta charset="UTF-8">
     <title>Image Editor!</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" media="screen">
   </head>
   <body>
-    <canvas id="canvas" tabindex="0" height="600" width="600">
-      Your browser does not support the Canvas.
-    </canvas>
-    <input type="file" id="file_input">
-    <button id="binarization"> binarization </button>
-    <button id="save"> save </button>
-    <script src="index.js"></script>
+    <div class="container">
+      <div class="device">
+        <div class="canvas_container">
+          <canvas id="canvas">
+            Your browser does not support the Canvas.
+          </canvas>
+        </div>
+        <div class="buttons">
+          <label class="button">
+            Select File
+            <input type="file" id="file_input">
+          </label>
+          <button class="button" id="binarization"> Binarization </button>
+          <button class="button" id="save"> Save </button>
+        </div>
+      </div>
+    </div>
+  <script src="index.js"></script>
   </body>
 </html>

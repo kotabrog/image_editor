@@ -46,6 +46,7 @@ features = [
     "FileReader",
     "ImageData",
     "CssStyleDeclaration",
+    "DomRect",
 ]
 
 # These crates are used for running unit tests.

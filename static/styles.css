@@ -1,0 +1,81 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.device {
+    margin: 10px;
+}
+
+.canvas_container {
+    display: block;
+    width: 100%;
+    background-color: white;
+    border-bottom: 2px solid black;
+    text-align: center;
+    border: 2px solid black;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+}
+
+/* PC画面のスタイル */
+@media screen and (min-width: 768px) {
+    .device {
+        width: 90%;
+        height: 90%;
+    }
+
+    .canvas_container {
+        height: 90%;
+    }
+
+    .buttons {
+        height: 10%;
+    }
+}
+
+/* スマホ画面のスタイル */
+@media screen and (max-width: 767px) {
+    .device {
+        width: 200px;
+        height: 400px;
+    }
+
+    .canvas_container {
+        height: 80%;
+    }
+
+    .buttons {
+        height: 20%;
+    }
+}

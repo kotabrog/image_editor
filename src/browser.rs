@@ -22,7 +22,7 @@ pub use file_reader::{
 };
 pub use canvas::{
     canvas, context_from_canvas, get_canvas_size, create_canvas,
-    canvas_to_data_url,
+    canvas_to_data_url, get_canvas_display_size,
 };
 pub use image::{
     get_context_image_data, image_data, new_image,

@@ -18,7 +18,7 @@ fn setup_save_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
             return Ok(());
         };
         let (width, height) = image.size();
-        let save_canvas = Canvas::new_from_name(width, height)?;
+        let save_canvas = Canvas::new(width, height)?;
         let render = Renderer::create_from_canvas(&save_canvas)?;
         render.draw_image_data(&image)?;
 

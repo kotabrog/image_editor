@@ -52,7 +52,7 @@ impl ImageDataWrapper {
     }
 
     pub async fn to_image(&self) -> Result<Image> {
-        let canvas = Canvas::new_from_name(self.width, self.height)?;
+        let canvas = Canvas::new(self.width, self.height)?;
         let render = Renderer::create_from_canvas(&canvas)?;
         render.draw_image_data(&self)?;
 
