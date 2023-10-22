@@ -5,6 +5,7 @@ mod image_data;
 mod button;
 mod anchor;
 mod canvas;
+mod rect;
 
 pub use renderer::Renderer;
 pub use image::Image;
@@ -13,6 +14,7 @@ pub use image_data::ImageDataWrapper;
 pub use button::Button;
 pub use anchor::Anchor;
 pub use canvas::Canvas;
+pub use rect::Rect;
 
 pub trait DisplayElement: std::fmt::Debug {
     fn set_disabled(&self, disabled: bool);

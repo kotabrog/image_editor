@@ -4,7 +4,7 @@ use std::sync::{Mutex, MutexGuard};
 use anyhow::Result;
 use crate::engine::{
     self, Image, Renderer, ImageDataWrapper, Canvas, DisplayElement,
-    Input, Button,
+    Input, Button, Rect,
 };
 
 mod input;
@@ -84,7 +84,7 @@ impl Editor {
             let (width, height) = image.size();
             let save_canvas = Canvas::new(width, height)?;
             let render = Renderer::create_from_canvas(&save_canvas)?;
-            render.draw_image(&image, width as f64, height as f64)?;
+            render.draw_image(&image, &Rect::new(0.0, 0.0, width as f64, height as f64))?;
 
             let image_data = ImageDataWrapper::new_from_context(
                 &render.context(), 0, 0, width, height)?;

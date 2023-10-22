@@ -2,7 +2,7 @@ use anyhow::{Result, anyhow};
 use web_sys::CanvasRenderingContext2d;
 use crate::browser;
 use super::{
-    Image, ImageDataWrapper, Canvas,
+    Image, ImageDataWrapper, Canvas, Rect,
 };
 
 #[derive(Debug)]
@@ -43,14 +43,21 @@ impl Renderer {
         Ok(())
     }
 
+    pub fn get_draw_image_rect(&self, width: f64, height: f64) -> Rect {
+        let (canvas_w, canvas_h) = self.size;
+        let mut rect = Rect::new(0.0, 0.0, width, height);
+        rect.to_center(canvas_w as f64, canvas_h as f64);
+        rect
+    }
+
     pub fn clear(&self) {
         self.context.clear_rect(
             0.0, 0.0, self.size.0 as f64, self.size.1 as f64);
     }
 
-    pub fn draw_image(&self, image: &Image, dw: f64, dh: f64) -> Result<()> {
+    pub fn draw_image(&self, image: &Image, rect: &Rect) -> Result<()> {
         self.context.draw_image_with_html_image_element_and_dw_and_dh(
-            image.element(), 0.0, 0.0, dw, dh)
+            image.element(), rect.x, rect.y, rect.width, rect.height)
             .map_err(|err| anyhow!("Could not draw image {:#?}", err))
             .map(|_| ())
     }
@@ -59,12 +66,15 @@ impl Renderer {
         let (width, height) = self.size;
         let (dw, dh) = image
             .calculate_fitted_size(width as f64, height as f64);
-        self.draw_image(image, dw, dh)
+        let rect = self.get_draw_image_rect(dw, dh);
+        self.draw_image(image, &rect)
     }
 
     pub fn draw_image_data(&self, image_data: &ImageDataWrapper) -> Result<()> {
+        let (width, height) = image_data.size();
+        let rect = self.get_draw_image_rect(width as f64, height as f64);
         self.context.put_image_data(
-            &image_data.image_data(), 0.0, 0.0)
+            &image_data.image_data(), rect.x, rect.y)
             .map_err(|err| anyhow!("Could not draw image data {:#?}", err))
             .map(|_| ())
     }
