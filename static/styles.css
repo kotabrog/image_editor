@@ -74,4 +74,9 @@ input[type="file"] {
     .buttons {
         height: 20%;
     }
+
+    .button {
+        margin: 5px;
+        padding: 10px 10px;
+    }
 }

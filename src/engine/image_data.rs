@@ -7,7 +7,7 @@ use super::{
     Image, Canvas, Renderer,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageDataWrapper {
     image_data: ImageData,
     width: u32,
@@ -36,6 +36,10 @@ impl ImageDataWrapper {
 
     pub fn data_mut(&mut self) -> &mut [u8] {
         &mut self.data
+    }
+
+    pub fn len(&self) -> usize {
+        self.data.len()
     }
 
     pub fn size(&self) -> (u32, u32) {

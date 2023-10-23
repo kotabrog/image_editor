@@ -10,6 +10,10 @@ use crate::engine::{
 mod input;
 mod binarization;
 mod save;
+mod image_data_list;
+mod back_and_forward;
+
+pub use image_data_list::ImageDataList;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EditorElement {
@@ -17,13 +21,15 @@ pub enum EditorElement {
     Input,
     Binarization,
     Save,
+    Undo,
+    Redo,
 }
 
 #[derive(Debug)]
 pub struct Editor {
     image: Option<Image>,
     renderer: Renderer,
-    image_data: Option<ImageDataWrapper>,
+    image_data: ImageDataList,
     display_elements: HashMap<EditorElement, Box<dyn DisplayElement>>,
 }
 
@@ -32,7 +38,7 @@ impl Editor {
         Ok(Self {
             image: None,
             renderer,
-            image_data: None,
+            image_data: ImageDataList::new(),
             display_elements: Self::make_display_elements()?,
         })
     }
@@ -55,6 +61,14 @@ impl Editor {
             EditorElement::Save,
             Box::new(Button::new_from_id("save")?)
         );
+        display_elements.insert(
+            EditorElement::Undo,
+            Box::new(Button::new_from_id("back")?)
+        );
+        display_elements.insert(
+            EditorElement::Redo,
+            Box::new(Button::new_from_id("forward")?)
+        );
         Ok(display_elements)
     }
 
@@ -69,15 +83,15 @@ impl Editor {
     }
 
     pub fn get_image_data(&self) -> Option<&ImageDataWrapper> {
-        self.image_data.as_ref()
+        self.image_data.get_image_data()
     }
 
     pub fn get_image_data_mut(&mut self) -> Option<&mut [u8]> {
-        if let Some(image_data) = &mut self.image_data {
-            Some(image_data.data_mut())
-        } else {
-            None
-        }
+        self.image_data.get_image_data_inner_mut()
+    }
+
+    pub fn have_image_data(&self) -> bool {
+        !self.image_data.is_empty()
     }
 
     pub fn set_image(&mut self, image: Image) {
@@ -93,20 +107,29 @@ impl Editor {
 
             let image_data = ImageDataWrapper::new_from_context(
                 &render.context(), 0, 0, width, height)?;
-            self.image_data = Some(image_data);
+            self.image_data.push(image_data);
         }
         Ok(())
     }
 
-    pub fn set_image_data(&mut self) -> Result<()> {
-        if let Some(image_data) = &mut self.image_data {
-            image_data.set_image_data()?;
-        }
-        Ok(())
+    pub fn data_to_image_data(&mut self) -> Result<()> {
+        self.image_data.data_to_image_data()
     }
 
     pub fn update_canvas_size(&mut self) -> Result<()> {
         self.renderer.update_canvas_size()
+    }
+
+    pub fn clone_push(&mut self) {
+        self.image_data.clone_push();
+    }
+
+    pub fn undo(&mut self) -> Option<&ImageDataWrapper> {
+        self.image_data.undo()
+    }
+
+    pub fn redo(&mut self) -> Option<&ImageDataWrapper> {
+        self.image_data.redo()
     }
 
     pub fn draw_image_fit_canvas(&self) -> Result<()> {
@@ -118,7 +141,7 @@ impl Editor {
     }
 
     pub async fn draw_image_data(&self) -> Result<()> {
-        if let Some(image_data) = &self.image_data {
+        if let Some(image_data) = self.image_data.get_image_data() {
             self.renderer.draw_image_data_fit_canvas(&image_data).await?;
         }
         Ok(())
@@ -138,5 +161,6 @@ pub fn setup() -> Result<()> {
     input::setup_input_event(editor.clone())?;
     binarization::setup_binarization_event(editor.clone())?;
     save::setup_save_event(editor.clone())?;
+    back_and_forward::setup_back_and_forward_event(editor.clone())?;
     Ok(())
 }

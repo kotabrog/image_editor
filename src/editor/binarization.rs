@@ -51,7 +51,7 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: Button, m
     if let Some(mut editor) = Editor::try_lock(&editor) {
         if let Some(image_data) = editor.get_image_data_mut() {
             if binarization_step(image_data, &mut temp, step) {
-                editor.set_image_data()?;
+                editor.data_to_image_data()?;
             } else {
                 continue_flag = true;
             }
@@ -95,8 +95,11 @@ fn first_step(editor: Rc<Mutex<Editor>>, button_element: Button) -> Result<()>{
         max_index: 0,
     };
     if let Some(mut editor) = Editor::try_lock(&editor) {
-        if let Some(image_data) = editor.get_image_data_mut() {
-            temp.max_index = image_data.len();
+        if editor.have_image_data() {
+            editor.clone_push();
+            if let Some(image_data) = editor.get_image_data() {
+                temp.max_index = image_data.len();
+            }
         } else {
             log!("No image data");
         }
