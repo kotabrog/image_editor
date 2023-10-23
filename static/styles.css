@@ -13,11 +13,14 @@ body {
 
 .device {
     margin: 10px;
+    width: 90%;
+    height: 90%;
 }
 
 .canvas_container {
     display: block;
     width: 100%;
+    height: 90%;
     background-color: white;
     border-bottom: 2px solid black;
     text-align: center;
@@ -37,6 +40,7 @@ input[type="file"] {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 10%;
 }
 
 .button {
@@ -46,6 +50,7 @@ input[type="file"] {
     background-color: white;
     color: black;
     cursor: pointer;
+    font-size: 1rem;
 }
 
 .button:disabled {
@@ -60,35 +65,8 @@ input[type="file"] {
     cursor: not-allowed;
 }
 
-input:disabled + label.button {
-    color: #a0a0a0;
-    border: 1px solid #d0d0d0;
-    cursor: not-allowed;
-}
-
-/* PC画面のスタイル */
-@media screen and (min-width: 768px) {
-    .device {
-        width: 90%;
-        height: 90%;
-    }
-
-    .canvas_container {
-        height: 90%;
-    }
-
-    .buttons {
-        height: 10%;
-    }
-}
-
 /* スマホ画面のスタイル */
 @media screen and (max-width: 767px) {
-    .device {
-        width: 200px;
-        height: 400px;
-    }
-
     .canvas_container {
         height: 80%;
     }
