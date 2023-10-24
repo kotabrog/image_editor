@@ -62,7 +62,8 @@ impl ImageDataList {
     }
 
     pub fn redo(&mut self) -> Option<&ImageDataWrapper> {
-        if self.current_index < self.image_data_list.len() - 1 {
+        if !self.image_data_list.is_empty() &&
+                self.current_index < self.image_data_list.len() - 1 {
             self.current_index += 1;
             Some(&self.image_data_list[self.current_index])
         } else {

@@ -7,28 +7,44 @@ use crate::browser;
 use crate::engine::Button;
 use super::Editor;
 
-
-fn setup_forward_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let mut forward_flag = false;
-    if let Some(mut editor) = Editor::try_lock(&editor) {
-        if let Some(_) = editor.redo() {
-            editor.set_disabled(true);
-            forward_flag = true;
-        }
-    }
-    if !forward_flag {
+async fn forward_event_inner(editor: Rc<Mutex<Editor>>, id: u16) -> Result<()> {
+    if !Editor::try_run_id(&editor, id) {
+        forward_event(editor, id)?;
         return Ok(());
     }
+    let mut editor = Editor::lock(&editor)?;
+    let result = editor.draw_image_data().await;
+    editor.set_disabled(false);
+    editor.to_idle();
+    result
+}
+
+fn forward_event(editor: Rc<Mutex<Editor>>, id: u16) -> Result<()> {
     browser::set_callback_once(move || {
         browser::spawn_local(async move {
-            if let Some(editor) = Editor::try_lock(&editor) {
-                if let Err(err) = editor.draw_image_data().await {
-                    error!("{:#?}", err);
-                }
-                editor.set_disabled(false);
+            if let Err(err) = forward_event_inner(editor, id).await {
+                error!("{:#?}", err);
             }
         });
     })
+}
+
+fn setup_forward_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
+    let id = if let Some(id) = Editor::try_run(&editor) {
+        id
+    } else {
+        return Ok(());
+    };
+    {
+        let mut editor = Editor::lock(&editor)?;
+        if let Some(_) = editor.redo() {
+            editor.set_disabled(true);
+        } else {
+            editor.to_idle();
+            return Ok(());
+        }
+    }
+    forward_event(editor, id)
 }
 
 pub fn setup_forward_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
@@ -47,27 +63,44 @@ pub fn setup_forward_event(editor: Rc<Mutex<Editor>>) -> Result<()> {
     Ok(())
 }
 
-fn setup_backward_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let mut backward_flag = false;
-    if let Some(mut editor) = Editor::try_lock(&editor) {
-        if let Some(_) = editor.undo() {
-            editor.set_disabled(true);
-            backward_flag = true;
-        }
-    }
-    if !backward_flag {
+async fn backward_event_inner(editor: Rc<Mutex<Editor>>, id: u16) -> Result<()> {
+    if !Editor::try_run_id(&editor, id) {
+        backward_event(editor, id)?;
         return Ok(());
     }
+    let mut editor = Editor::lock(&editor)?;
+    let result = editor.draw_image_data().await;
+    editor.set_disabled(false);
+    editor.to_idle();
+    result
+}
+
+fn backward_event(editor: Rc<Mutex<Editor>>, id: u16) -> Result<()> {
     browser::set_callback_once(move || {
         browser::spawn_local(async move {
-            if let Some(editor) = Editor::try_lock(&editor) {
-                if let Err(err) = editor.draw_image_data().await {
-                    error!("{:#?}", err);
-                }
-                editor.set_disabled(false);
+            if let Err(err) = backward_event_inner(editor, id).await {
+                error!("{:#?}", err);
             }
         });
     })
+}
+
+fn setup_backward_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
+    let id = if let Some(id) = Editor::try_run(&editor) {
+        id
+    } else {
+        return Ok(());
+    };
+    {
+        let mut editor = Editor::lock(&editor)?;
+        if let Some(_) = editor.undo() {
+            editor.set_disabled(true);
+        } else {
+            editor.to_idle();
+            return Ok(());
+        }
+    }
+    backward_event(editor, id)
 }
 
 pub fn setup_backward_event(editor: Rc<Mutex<Editor>>) -> Result<()> {

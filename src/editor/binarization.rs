@@ -99,8 +99,9 @@ fn binarization_step_thread(editor: Rc<Mutex<Editor>>, button_element: Button, m
 }
 
 fn set_disabled_false(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    let editor = Editor::lock(&editor)?;
+    let mut editor = Editor::lock(&editor)?;
     editor.set_disabled(false);
+    editor.to_idle();
     Ok(())
 }
 

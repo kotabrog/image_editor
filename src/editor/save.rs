@@ -10,26 +10,33 @@ use crate::engine::{
 use super::Editor;
 
 fn setup_save_event_closure(editor: Rc<Mutex<Editor>>) -> Result<()> {
-    if let Some(editor) = Editor::try_lock(&editor) {
-        let image = if let Some(image) = editor.get_image_data() {
-            image
-        } else {
-            log!("No image to save");
-            return Ok(());
-        };
-        let (width, height) = image.size();
-        let save_canvas = Canvas::new(width, height)?;
-        let render = Renderer::create_from_canvas(&save_canvas)?;
-        render.draw_image_data(&image)?;
+    let _id = if let Some(id) = Editor::try_run(&editor) {
+        id
+    } else {
+        return Ok(());
+    };
+    let mut editor = Editor::lock(&editor)?;
+    let image = if let Some(image) = editor.get_image_data() {
+        image
+    } else {
+        log!("No image to save");
+        editor.to_idle();
+        return Ok(());
+    };
+    let (width, height) = image.size();
+    let save_canvas = Canvas::new(width, height)?;
+    let render = Renderer::create_from_canvas(&save_canvas)?;
+    render.draw_image_data(&image)?;
 
-        let data_url = save_canvas.to_data_url()?;
+    let data_url = save_canvas.to_data_url()?;
 
-        let anchor = Anchor::new_from_name()?;
-        anchor.set_href(&data_url);
-        anchor.set_download("image.png");
+    let anchor = Anchor::new_from_name()?;
+    anchor.set_href(&data_url);
+    anchor.set_download("image.png");
 
-        anchor.click();
-    }
+    anchor.click();
+
+    editor.to_idle();
     Ok(())
 }
 
