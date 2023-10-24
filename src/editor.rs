@@ -76,6 +76,10 @@ impl Editor {
         Ok(display_elements)
     }
 
+    pub fn lock<'a>(editor: &'a Rc<Mutex<Self>>) -> Result<MutexGuard<'a, Editor>> {
+        editor.lock().map_err(|err| anyhow::anyhow!("{:#?}", err))
+    }
+
     pub fn try_lock<'a>(editor: &'a Rc<Mutex<Self>>) -> Option<MutexGuard<'a, Editor>> {
         match editor.try_lock() {
             Ok(editor) => Some(editor),
