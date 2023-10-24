@@ -12,8 +12,10 @@ mod binarization;
 mod save;
 mod image_data_list;
 mod back_and_forward;
+mod mode_manager;
 
 pub use image_data_list::ImageDataList;
+pub use mode_manager::{Mode, ModeManager};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EditorElement {
@@ -31,6 +33,7 @@ pub struct Editor {
     renderer: Renderer,
     image_data: ImageDataList,
     display_elements: HashMap<EditorElement, Box<dyn DisplayElement>>,
+    mode_manager: ModeManager,
 }
 
 impl Editor {
@@ -40,6 +43,7 @@ impl Editor {
             renderer,
             image_data: ImageDataList::new(),
             display_elements: Self::make_display_elements()?,
+            mode_manager: ModeManager::new(),
         })
     }
 
@@ -79,6 +83,22 @@ impl Editor {
                 log!("Editor is locked");
                 None
             },
+        }
+    }
+
+    pub fn try_run(editor: &Rc<Mutex<Self>>) -> Option<u16> {
+        if let Some(mut editor) = Self::try_lock(&editor) {
+            editor.mode_manager.try_run()
+        } else {
+            return None;
+        }
+    }
+
+    pub fn try_run_id(editor: &Rc<Mutex<Self>>, id: u16) -> bool {
+        if let Some(editor) = Self::try_lock(&editor) {
+            editor.mode_manager.match_run_id(id)
+        } else {
+            return false;
         }
     }
 
@@ -130,6 +150,10 @@ impl Editor {
 
     pub fn redo(&mut self) -> Option<&ImageDataWrapper> {
         self.image_data.redo()
+    }
+
+    pub fn to_idle(&mut self) {
+        self.mode_manager.to_idle();
     }
 
     pub fn draw_image_fit_canvas(&self) -> Result<()> {
