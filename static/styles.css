@@ -1,7 +1,25 @@
+:root {
+    --main-color: black;
+    --bg-color: white;
+    --gray-main-color: #a0a0a0;
+    --gray-bg-color: #d0d0d0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --main-color: white;
+        --bg-color: #1e1e1e;
+        --gray-main-color: #808080;
+        --gray-bg-color: #505050;
+    }
+}
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
+    background-color: var(--bg-color);
+    color: var(--main-color);
 }
 
 .container {
@@ -21,15 +39,19 @@ body {
     display: block;
     width: 100%;
     height: 90%;
-    background-color: white;
-    border-bottom: 2px solid black;
+    background-color: var(--bg-color);
+    border-bottom: 2px solid var(--main-color);
     text-align: center;
-    border: 2px solid black;
+    border: 2px solid var(--main-color);
 }
 
 #canvas {
     width: 100%;
     height: 100%;
+}
+
+label {
+    background-color: var(--bg-color);
 }
 
 input[type="file"] {
@@ -46,22 +68,22 @@ input[type="file"] {
 .button {
     margin: 10px;
     padding: 10px 20px;
-    border: 1px solid black;
-    background-color: white;
-    color: black;
+    border: 1px solid var(--main-color);
+    background-color: var(--bg-color);
     cursor: pointer;
     font-size: 1rem;
+    color: var(--main-color);
 }
 
 .button:disabled {
-    color: #a0a0a0;
-    border: 1px solid #d0d0d0;
+    color: var(--gray-main-color);
+    border: 1px solid var(--gray-bg-color);
     cursor: not-allowed;
 }
 
 .disabled {
-    color: #a0a0a0;
-    border: 1px solid #d0d0d0;
+    color: var(--gray-main-color);
+    border: 1px solid var(--gray-bg-color);
     cursor: not-allowed;
 }
 
