@@ -30,6 +30,14 @@ impl ImageDataList {
         self.image_data_list.is_empty()
     }
 
+    pub fn is_first(&self) -> bool {
+        self.current_index == 0
+    }
+
+    pub fn is_last(&self) -> bool {
+        self.is_empty() || self.current_index == self.image_data_list.len() - 1
+    }
+
     pub fn push(&mut self, image_data: ImageDataWrapper) {
         self.image_data_list.truncate(self.current_index + 1);
         if self.image_data_list.len() == MAX_IMAGE_DATA_LIST_SIZE {

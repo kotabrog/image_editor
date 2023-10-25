@@ -24,6 +24,8 @@ async fn internal_draw_image_fit_canvas_from_source(editor: Rc<Mutex<Editor>>, s
     editor.update_canvas_size()?;
     editor.draw_image_fit_canvas()?;
     editor.setup_image_data()?;
+    editor.set_disabled(true);
+    editor.set_disabled(false);
     editor.to_idle();
     Ok(())
 }

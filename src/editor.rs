@@ -176,8 +176,33 @@ impl Editor {
     }
 
     pub fn set_disabled(&self, disabled: bool) {
-        for display_element in self.display_elements.values() {
-            display_element.set_disabled(disabled);
+        if disabled {
+            for display_element in self.display_elements.values() {
+                display_element.set_disabled(true);
+            }
+        } else {
+            for (key, element) in self.display_elements.iter() {
+                match key {
+                    EditorElement::InputLabel | EditorElement::Input => {
+                        element.set_disabled(false);
+                    },
+                    EditorElement::Redo => {
+                        if !self.image_data.is_last() {
+                            element.set_disabled(false);
+                        }
+                    },
+                    EditorElement::Undo => {
+                        if !self.image_data.is_first() {
+                            element.set_disabled(false);
+                        }
+                    },
+                    _ => {
+                        if !self.image_data.is_empty() {
+                            element.set_disabled(false);
+                        }
+                    },
+                }
+            }
         }
     }
 }
@@ -190,5 +215,7 @@ pub fn setup() -> Result<()> {
     binarization::setup_binarization_event(editor.clone())?;
     save::setup_save_event(editor.clone())?;
     back_and_forward::setup_back_and_forward_event(editor.clone())?;
+    Editor::lock(&editor)?.set_disabled(true);
+    Editor::lock(&editor)?.set_disabled(false);
     Ok(())
 }

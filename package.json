@@ -1,7 +1,7 @@
 {
   "author": "kota",
   "name": "image_editor",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "scripts": {
     "build": "rimraf dist pkg && webpack",
     "start": "rimraf dist pkg && webpack-dev-server --open -d",
