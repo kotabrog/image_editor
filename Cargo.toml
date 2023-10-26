@@ -2,7 +2,7 @@
 [package]
 name = "image_editor"
 description = "My super awesome Rust, WebAssembly, and Webpack project!"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["kota"]
 categories = ["wasm"]
 readme = "README.md"
