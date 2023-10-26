@@ -5,6 +5,7 @@ use wasm_bindgen::{
 };
 use web_sys::{
     Window, Document, Event, HtmlLabelElement,
+    HtmlElement,
 };
 
 mod input;
@@ -13,6 +14,7 @@ mod canvas;
 mod image;
 mod button;
 mod anchor;
+mod media_query_list;
 
 pub use input::{
     input, event_current_target,
@@ -32,6 +34,10 @@ pub use button::{
     add_event_listener_with_callback_button,
 };
 pub use anchor::create_anchor;
+pub use media_query_list::{
+    make_media_query_list, get_color_scheme_media_query_list,
+    add_listener_with_opt_callback, event_current_target_to_media_query_list,
+};
 
 pub type EventClosure = Closure<dyn FnMut(Event)>;
 
@@ -57,6 +63,23 @@ pub fn window() -> Result<Window> {
 
 pub fn document() -> Result<Document> {
     window()?.document().ok_or_else(|| anyhow!("No Document Found"))
+}
+
+pub fn body() -> Result<HtmlElement> {
+    document()?
+        .body()
+        .ok_or_else(|| anyhow!("No Body Found"))
+}
+
+pub fn set_attribute_to_body(name: &str, value: &str) -> Result<()> {
+    body()?
+        .set_attribute(name, value)
+        .map_err(|err| anyhow!("Error setting attribute {:#?} to {:#?}: {:#?}", name, value, err))
+        .map(|_| ())
+}
+
+pub fn get_attribute_from_body(name: &str) -> Result<Option<String>> {
+    Ok(body()?.get_attribute(name))
 }
 
 pub fn label(id: &str) -> Result<HtmlLabelElement> {

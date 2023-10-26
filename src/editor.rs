@@ -13,6 +13,7 @@ mod save;
 mod image_data_list;
 mod back_and_forward;
 mod mode_manager;
+mod theme;
 
 pub use image_data_list::ImageDataList;
 pub use mode_manager::{Mode, ModeManager};
@@ -211,6 +212,7 @@ pub fn setup() -> Result<()> {
     let editor = Rc::new(
         Mutex::new(Editor::new(engine::Renderer::new()?
     )?));
+    theme::setup_theme_event()?;
     input::setup_input_event(editor.clone())?;
     binarization::setup_binarization_event(editor.clone())?;
     save::setup_save_event(editor.clone())?;

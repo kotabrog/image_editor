@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Editor!</title>
     <link rel="stylesheet" href="styles.css" type="text/css" media="screen">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   </head>
   <body>
     <div class="container">
       <div class="device">
+        <div class="settings">
+          <button class="theme_button" id="theme">
+            <div class="light">
+            <span class="material-icons">
+              brightness_2
+            </span>
+            </div>
+            <div class="dark">
+            <span class="material-icons sun">
+              light_mode
+            </span>
+            </div>
+          </button>
+        </div>
         <div class="canvas_container">
           <canvas id="canvas">
             Your browser does not support the Canvas.

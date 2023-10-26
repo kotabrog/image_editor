@@ -3,15 +3,17 @@
     --bg-color: white;
     --gray-main-color: #a0a0a0;
     --gray-bg-color: #d0d0d0;
+    --display-sun: none;
+    --display-moon: block;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --main-color: white;
-        --bg-color: #1e1e1e;
-        --gray-main-color: #808080;
-        --gray-bg-color: #505050;
-    }
+[data-theme="dark"] {
+    --main-color: white;
+    --bg-color: #1e1e1e;
+    --gray-main-color: #808080;
+    --gray-bg-color: #505050;
+    --display-sun: block;
+    --display-moon: none;
 }
 
 body {
@@ -20,6 +22,7 @@ body {
     padding: 0;
     background-color: var(--bg-color);
     color: var(--main-color);
+    transition: .5s;
 }
 
 .container {
@@ -35,12 +38,36 @@ body {
     height: 90%;
 }
 
+.settings {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 10%;
+}
+
+.theme_button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.light {
+    display: var(--display-moon);
+}
+
+.dark {
+    display: var(--display-sun);
+}
+
+.sun {
+    color: var(--main-color);
+}
+
 .canvas_container {
     display: block;
     width: 100%;
-    height: 90%;
+    height: 80%;
     background-color: var(--bg-color);
-    border-bottom: 2px solid var(--main-color);
     text-align: center;
     border: 2px solid var(--main-color);
 }
@@ -89,10 +116,6 @@ input[type="file"] {
 
 /* スマホ画面のスタイル */
 @media screen and (max-width: 767px) {
-    .canvas_container {
-        height: 80%;
-    }
-
     .buttons {
         height: 20%;
     }

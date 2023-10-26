@@ -49,6 +49,7 @@ features = [
     "CssStyleDeclaration",
     "DomRect",
     "DomTokenList",
+    "MediaQueryList",
 ]
 
 # These crates are used for running unit tests.
