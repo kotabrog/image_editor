@@ -69,6 +69,8 @@ fn setup_input_event_closure(editor: Rc<Mutex<Editor>>, event: Event) -> Result<
         onload_closure.forget();
 
         browser::file_reader_read_as_data_url(&reader_ref.borrow(), &file)?;
+    } else {
+        Editor::lock(&editor)?.to_idle();
     }
     Ok(())
 }

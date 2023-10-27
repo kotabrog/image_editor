@@ -70,6 +70,7 @@ body {
     background-color: var(--bg-color);
     text-align: center;
     border: 2px solid var(--main-color);
+    transition: .5s;
 }
 
 #canvas {
